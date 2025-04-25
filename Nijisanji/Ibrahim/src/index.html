@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>イブラヒムさんモチーフ砂時計</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #0b111d;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', sans-serif;
+      background: transparent;
+    }
+
+    .clock-container {
+      position: relative;
+      padding: 1em 1.5em;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid #7CA1F0;
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+      box-shadow:
+        0 0 20px rgba(124, 161, 240, 0.4),
+        0 0 40px rgba(124, 161, 240, 0.2);
+      text-align: center;
+    }
+
+    /* ① 日付＋曜日 */
+    .date-text {
+      font-size: 1.2em;
+      color: #e8f0ff;
+      margin-bottom: 0.2em;
+      border-bottom: 1px solid #7CA1F0; /* アンダーバー */
+      display: inline-block; /* アンダーバーの長さを文字幅に合わせる */
+        /* 黒のアウトライン効果を追加 */
+      text-shadow:
+      0.3px 0.3px 1.1px #000,  /* 黒い縁取り */
+      -1px -1px 2px #000,
+      0 0 6px #7CA1F0,   /* 既存の光彩 */
+      0 0 12px #7CA1F0;
+    }
+
+    .clock-text {
+      font-size: 4.5em;
+      color: #e8f0ff;
+      text-shadow:
+        0 0 8px #7CA1F0,
+        0 0 16px #7CA1F0,
+        0 0 24px #7CA1F0;
+      letter-spacing: 0.05em;
+      z-index: 1;
+      position: relative;
+    }
+
+    /* ひし形クリスタル */
+    .crystal {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      background: #7CA1F0;
+      filter:
+        drop-shadow(0 0 10px #7CA1F0)
+        drop-shadow(0 0 20px #7CA1F0)
+        drop-shadow(0 0 40px #7CA1F0);
+      opacity: 0.6;
+      animation: pulse 6s ease-in-out infinite;
+      transform: rotate(45deg);
+    }
+    .crystal::before {
+      content: '';
+      position: absolute;
+      inset: 5px;
+      background: #a9c8ff;
+      border-radius: 15%;
+      filter: blur(6px);
+    }
+    .crystal2 {
+      top: 10px;
+      right: 40px;
+      width: 40px;
+      height: 40px;
+      animation-delay: 2s;
+    }
+    @keyframes pulse {
+      0%,100% {
+        opacity: 0.6;
+        transform: scale(1) rotate(45deg);
+        filter:
+          drop-shadow(0 0 8px #7CA1F0)
+          drop-shadow(0 0 16px #7CA1F0)
+          drop-shadow(0 0 32px #7CA1F0);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.15) rotate(45deg);
+        filter:
+          drop-shadow(0 0 12px #a9c8ff)
+          drop-shadow(0 0 24px #a9c8ff)
+          drop-shadow(0 0 48px #a9c8ff);
+      }
+    }
+
+    /* ② 砂時計 */
+    .hourglass {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        width: 40px;
+        height: 80px;
+        transform-origin: center;
+        transition: transform 1s ease;
+      }
+    
+      /* アニメーション用のクラス */
+      .rotate {
+        animation: rotateHourglass 1s ease;
+      }
+    
+      @keyframes rotateHourglass {
+        0% { transform: rotate(0deg); }
+        50% { transform: rotate(180deg); }
+        100% { transform: rotate(360deg); }
+      }
+    
+      .hourglass::before,
+      .hourglass::after {
+        content: '';
+        position: absolute;
+        left: 0; width: 100%;
+        height: 50%;
+        border: 2px solid #7CA1F0;
+        background: rgba(0, 0, 0, 0.3); /* ← 黒く塗りつぶし */
+      }
+      .hourglass::before {
+        top: 0;
+        clip-path: polygon(0 0, 100% 0, 50% 100%);
+      }
+      .hourglass::after {
+        bottom: 0;
+        clip-path: polygon(50% 0, 0 100%, 100% 100%);
+      }
+  </style>
+</head>
+<body>
+  <div class="clock-container">
+    <!-- ① 日付＋曜日 -->
+    <div class="date-text" id="date">--/--/-- (---)</div>
+
+    <!-- クリスタル＆時計 -->
+    <div class="crystal"></div>
+    <div class="crystal crystal2"></div>
+    <div class="clock-text" id="clock">--:--:--</div>
+
+    <!-- ② 砂時計を追加 -->
+    <div class="hourglass" id="hourglass"></div>
+
+  </div>
+
+  <script>
+    let lastMinute = null;
+
+    function updateClock() {
+      const now = new Date();
+      const h = now.getHours().toString().padStart(2, '0');
+      const m = now.getMinutes().toString().padStart(2, '0');
+      const s = now.getSeconds().toString().padStart(2, '0');
+      document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+
+      // 分が変わったときに砂時計を回転
+      if (m !== lastMinute) {
+        const hourglass = document.getElementById('hourglass');
+        hourglass.classList.remove('rotate'); // アニメーション再実行のため一度削除
+        void hourglass.offsetWidth; // DOM再描画を強制してクラスを再追加
+        hourglass.classList.add('rotate');
+        lastMinute = m;
+      }
+    }
+
+    function updateDate() {
+      const now = new Date();
+      const mm = (now.getMonth() + 1).toString().padStart(2, '0');
+      const dd = now.getDate().toString().padStart(2, '0');
+      const weekday = now.toLocaleDateString('en-US', { weekday: 'short' });
+      document.getElementById('date').textContent = `${mm}-${dd} (${weekday})`;
+    }
+
+    setInterval(updateClock, 1000);
+    setInterval(updateDate, 60 * 1000);
+    updateClock();
+    updateDate();
+  </script>
+</body>
+</html>
