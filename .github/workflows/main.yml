@@ -1,17 +1,11 @@
-# .github/workflows/zip-nijisanji-folders.yml
 name: Zip & Deploy Nijisanji Subfolders
 
 on:
-  # コード変更時にも動かす
   push:
     paths:
       - 'Nijisanji/**'
-  # スケジュール実行
   schedule:
-    # UTC の毎日00:00に実行する場合
     - cron: '0 0 * * *'
-    # ↓日本時間0:00に実行したい場合はこちらを有効に
-    # - cron: '0 15 * * *'
 
 jobs:
   zip_and_upload:
@@ -29,7 +23,7 @@ jobs:
           done
 
       - name: Upload ZIP artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4  # ここを v3 から v4 に更新
         with:
           name: Nijisanji-Zips
           path: '*.zip'
