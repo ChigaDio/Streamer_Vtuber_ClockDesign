@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>バンケンモチーフ時計</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #eef;       background: transparent;}
+    canvas { display: block; }
+    @font-face {
+        font-family: 'ZenAntique';
+        src: url('../assets/ZenAntique-Regular.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+  </style>
+</head>
+<body>
+<canvas id="world"></canvas>
+<script src="./matter.min.js"></script>
+<script>
+  // Matter.js モジュール読み込み
+  const { Engine, Render, Runner, World, Bodies, Constraint, Body, Mouse, MouseConstraint, Events } = Matter;
+
+  // エンジン＆ワールド生成
+  const engine = Engine.create();
+  const world = engine.world;
+
+  // 看板に使いたい画像のパス
+  const SIGN_TEXTURE = '../assets/banken_fix.png';
+  // 実際の画像サイズ
+  const SIGN_WIDTH  = 500;
+  const SIGN_HEIGHT = 500;
+
+  // レンダラー設定
+  const canvas = document.getElementById('world');
+  const render = Render.create({
+    canvas: canvas,
+    engine: engine,
+    options: { width: window.innerWidth, height: window.innerHeight, wireframes: false, background: '#eef' }
+  });
+  Render.run(render);
+
+  // ランナー開始
+  const runner = Runner.create();
+  Runner.run(runner, engine);
+
+  // マウスドラッグ対応
+  const mouse = Mouse.create(render.canvas);
+  const mouseConstraint = MouseConstraint.create(engine, {
+    mouse: mouse,
+    constraint: { stiffness: 0.2, render: { visible: false } }
+  });
+  World.add(world, mouseConstraint);
+  render.mouse = mouse;
+
+  // 看板作成
+  const centerX = window.innerWidth / 2;
+  const topY    = 100;
+  const signRadius = 120;
+  // 画像をプリロード
+  const signImg = new Image();
+  signImg.src = SIGN_TEXTURE;
+
+  const sign = Bodies.rectangle(
+    centerX,
+    topY + 6 * 15  / 2,
+    50,
+    50,
+    {
+      density: 0.004,
+      render: {
+        sprite: {
+          texture: SIGN_TEXTURE,
+          xScale: 0.3,   // 画像の元サイズに合わせて拡大率調整
+          yScale: 0.3
+        }
+      }
+    }
+  );
+  World.add(world, sign);
+
+  //時計
+  function getTimeString() {
+    const now = new Date();
+    const hh  = String(now.getHours()).padStart(2, '0');
+    const mm  = String(now.getMinutes()).padStart(2, '0');
+    const ss  = String(now.getSeconds()).padStart(2, '0');
+    return `${hh}:${mm}:${ss}`;
+  }
+
+  // 時刻取得（hh, mm ,month,dayを別々に返す）
+  function getHourMinuteMonthDay() {
+    const now = new Date();
+    return {
+        hh: String(now.getHours()).padStart(2, '0'),
+        mm: String(now.getMinutes()).padStart(2, '0'),
+        month: String(now.getMonth() + 1).padStart(2, '0'), // 修正: +1追加
+        day: String(now.getDate()).padStart(2, '0')         // 修正: getDate()に変更
+    };
+  }
+
+  // 二つのチェーンをそれぞれ左・右に生成して看板に連結
+  const chainOffsets = [-signRadius * 0.8, signRadius * 0.8];
+  const linkWidth = 8, linkHeight = 20, linkSpacing = 15, numLinks = 2;
+
+  chainOffsets.forEach(offsetX => {
+    let prev = null;
+    const attachX = centerX + offsetX;
+    for (let i = 0; i < numLinks; i++) {
+      const posY = topY + i * linkSpacing;
+      const link = Bodies.rectangle(
+        attachX,
+        posY,
+        linkWidth,
+        linkHeight,
+        {
+            collisionFilter: { group: -1 },
+            render: {
+            fillStyle: '#92F3A4',     // 本体の色
+            strokeStyle: '#9D3757 ',   // 枠線の色も同じ
+            lineWidth: 2              // 枠線なし！
+            }
+        }
+      )
+      World.add(world, link);
+      const consOpts = {
+        bodyB: link,
+        pointB: { x: 0, y: -linkHeight / 2 },
+        stiffness: 1,
+        length: linkSpacing
+      };
+      if (prev) {
+        consOpts.bodyA = prev;
+        consOpts.pointA = { x: 0, y: linkHeight / 2 };
+      } else {
+        consOpts.pointA = { x: attachX, y: topY };
+      }
+      World.add(world, Constraint.create(consOpts));
+      prev = link;
+    }
+    // チェーン最下部と看板を接続
+    World.add(world, Constraint.create({
+      bodyA: prev,
+      pointA: { x: 0, y: linkHeight / 2 },
+      bodyB: sign,
+      pointB: { x: offsetX, y: -signRadius },
+      stiffness: 1,
+      length: 0
+    }));
+  });
+
+    // 時・分、月、日の位置オフセット
+    const POS = {
+        hour:   { x: -65, y:  13 },
+        minute: { x:  65, y:  13},
+        month:   { x: -78, y:  -95 },
+        day: { x:  78, y:  -95 },
+        arrow:  { x:   0, y:   45 },  // ▼ 
+    };
+  //時計描画
+  Events.on(render, 'afterRender', () => {
+    const ctx = render.context;
+    ctx.save();
+
+    // 看板の中心に合わせて平行移動・回転
+    ctx.translate(sign.position.x, sign.position.y);
+    ctx.rotate(sign.angle);
+
+    // 時計フォント・サイズ
+    const CLOCK_FONT = '48px ZenAntique, monospace';
+
+
+    // テキストスタイル
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font         = CLOCK_FONT;
+    ctx.fillStyle    = '#FFFFFFF';
+
+    const {hh,mm,month,day} = getHourMinuteMonthDay();
+
+    // 実際に描画
+    //時、分
+    ctx.fillText(hh, POS.hour.x,   POS.hour.y);
+    ctx.fillText(mm, POS.minute.x, POS.minute.y);
+
+    // --- 点滅する ▼ ---  
+    // 500ms ごとに表示/非表示をトグル
+    const blinkOn = Math.floor(Date.now() / 500) % 2 === 0;
+    if (blinkOn) {
+        // フォントサイズはお好みで調整
+        ctx.font      = '12px ZenAntique, monospace';
+        ctx.fillStyle = '#FFFFFFF';  // 色もお好みで
+        ctx.fillText('▼', POS.arrow.x, POS.arrow.y);
+    }
+
+    // 時計フォント・サイズ
+    const CLOCK_FONT_MONTH_DAY = '24px ZenAntique, monospace';
+
+
+    // テキストスタイル
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font         = CLOCK_FONT_MONTH_DAY;
+    ctx.fillStyle    = '#000000';
+    ctx.fillText(month, POS.month.x,   POS.month.y);
+    ctx.fillText(day, POS.day.x, POS.day.y);
+
+    // 髭のスタイル設定
+    ctx.strokeStyle = '#FFFFFFF'; // 髭の色
+    ctx.lineWidth = 2; // 線の太さ
+
+    // 左側の髭（3本）
+    ctx.beginPath();
+    const LINE_START = 80
+    const LINE_LENGTH  = -20
+    const LINE_SPACE = 7
+    const LINE_START_Y = 35
+    ctx.moveTo(-LINE_START, LINE_START_Y); // 左上
+    ctx.lineTo(-LINE_START + LINE_LENGTH, LINE_START_Y);
+    ctx.moveTo(-LINE_START, LINE_START_Y + (LINE_SPACE ));   // 左中央
+    ctx.lineTo(-LINE_START + LINE_LENGTH, LINE_START_Y + (LINE_SPACE ));
+    ctx.moveTo(-LINE_START, LINE_START_Y + (LINE_SPACE) * 2);  // 左下
+    ctx.lineTo(-LINE_START + LINE_LENGTH, LINE_START_Y + (LINE_SPACE * 2));
+    
+    // 右側の髭（3本）
+    ctx.moveTo(LINE_START, LINE_START_Y); // 左上
+    ctx.lineTo(LINE_START - LINE_LENGTH, LINE_START_Y);
+    ctx.moveTo(LINE_START, LINE_START_Y + (LINE_SPACE) );   // 左中央
+    ctx.lineTo(LINE_START - LINE_LENGTH, LINE_START_Y + (LINE_SPACE ));
+    ctx.moveTo(LINE_START, LINE_START_Y + (LINE_SPACE) * 2);  // 左下
+    ctx.lineTo(LINE_START - LINE_LENGTH, LINE_START_Y + (LINE_SPACE * 2));
+    ctx.stroke();
+
+    ctx.restore();
+  });
+
+  // 揺れ演出：3秒後に大きく押す
+  setTimeout(() => {
+    Body.applyForce(sign, sign.position, { x: 0.02, y: 0 });
+  }, 3000);
+
+  // 定期的に横揺れ＆回転で3D風効果
+  setInterval(() => {
+    const fx = (Math.random() - 0.5) * 0.05;
+    Body.applyForce(sign, sign.position, { x: fx, y: 0 });
+    const torque = (Math.random() - 0.5) * 0.02;
+    Body.setAngularVelocity(sign, torque);
+  }, 2000);
+
+  // リサイズ対応
+  window.addEventListener('resize', () => {
+    Render.lookAt(render, { min: { x: 0, y: 0 }, max: { x: window.innerWidth, y: window.innerHeight } });
+  });
+</script>
+</body>
+</html>
