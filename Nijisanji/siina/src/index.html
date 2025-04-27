@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>椎名モチーフ時計</title>
+  <style>
+    body {
+      background: transparent;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    /* ── 画像コンテナ ── */
+    #imageContainer {
+      position: relative;
+      width: 100%;
+      max-width: 750px;
+    }
+    #imageContainer img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* 画像のリサイズ方法指定 */
+      filter:
+        brightness(0)
+        saturate(100%)
+        invert(37%)
+        sepia(8%)
+        saturate(2009%)
+        hue-rotate(281deg)
+        brightness(89%)
+        contrast(81%);
+      opacity: 0.65;
+    }
+
+    /* ── 時計 ── */
+    #clockContainer {
+      position: absolute;
+      top: 50%; /* 中心に変更 */
+      left: 70%; /* 中心に変更 */
+      transform: translate(-50%, -50%); /* 中心揃え */
+      width: 80%; /* 幅を調整 */
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+    }
+
+    /* 時間＋日付コンテナ */
+    #timeDate {
+      display: flex;
+      flex-direction: row; /* 縦並びに変更 */
+      align-items: center;
+      gap: 1rem; /* 固定値に変更 */
+    }
+
+    /* 時刻 */
+    #time {
+      font-size: 6rem; /* rem単位に変更 */
+      font-weight: bold;
+      line-height: 1;
+      text-shadow: 4px 2px 4px rgba(241, 200, 222,0.9);
+    }
+
+    /* 日付コンテナ */
+    #dateContainer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem; /* 固定値に変更 */
+    }
+
+    #date {
+      font-size: 3.8rem; /* rem単位に変更 */
+      padding-bottom: 0.2rem;
+      border-bottom: 3px solid white;
+      text-shadow: 2px 2px 4px rgba(241, 200, 222,0.9);
+    }
+
+    #weekday {
+      font-size: 3.3rem; /* rem単位に変更 */
+      font-style: italic;
+      text-shadow: 2px 2px 4px rgba(241, 200, 222,0.9);
+    }
+
+    .circle {
+        position: absolute; /* 画像に対して絶対配置 */
+        left: 50%; /* 水平中央 */
+        transform: translate(-170%,-50%); /* 真ん中に調整 */
+        width: 18%; /* 画像幅の20%に変更（調整可能） */
+        height: 21%; /* 画像の半分の高さ */
+        background: rgba(127, 83, 103, 0.65); /* 色コードをRGB→RGBAに変換 */
+        mix-blend-mode: lighten; /* ブレンドモード追加 */
+      }
+      
+      .circle.top {
+        top: -5.5%; /* 画像の上端に配置 */
+        border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+      }
+      
+      .circle.bottom {
+        bottom: -26.2%; /* 画像の下端に配置 */
+        border-radius: 0 0 50% 50% / 0 0 100% 100%;
+      }
+
+    
+
+    /* メディアクエリ（必要に応じて追加） */
+    @media (max-width: 600px) {
+      #time { font-size: 2.5rem; }
+      #date { font-size: 1.3rem; }
+      #weekday { font-size: 1.1rem; }
+    }
+
+    @keyframes glitch1 {
+        0% {
+          transform: none;
+          opacity: 1;
+        }
+        7% {
+          transform: skew(-0.5deg, -0.9deg);
+          opacity: 0.75;
+        }
+        10% {
+          transform: none;
+          opacity: 1;
+        }
+        27% {
+          transform: none;
+          opacity: 1;
+        }
+        30% {
+          transform: skew(0.8deg, -0.1deg);
+          opacity: 0.75;
+        }
+        35% {
+          transform: none;
+          opacity: 1;
+        }
+        52% {
+          transform: none;
+          opacity: 1;
+        }
+        55% {
+          transform: skew(-1deg, 0.2deg);
+          opacity: 0.75;
+        }
+        50% {
+          transform: none;
+          opacity: 1;
+        }
+        72% {
+          transform: none;
+          opacity: 1;
+        }
+        75% {
+          transform: skew(0.4deg, 1deg);
+          opacity: 0.75;
+        }
+        80% {
+          transform: none;
+          opacity: 1;
+        }
+        100% {
+          transform: none;
+          opacity: 1;
+        }
+      }
+      
+      @keyframes glitch2 {
+        0% {
+          transform: none;
+          opacity: 0.25;
+        }
+        7% {
+          transform: translate(-2px, -3px);
+          opacity: 0.5;
+        }
+        10% {
+          transform: none;
+          opacity: 0.25;
+        }
+        27% {
+          transform: none;
+          opacity: 0.25;
+        }
+        30% {
+          transform: translate(-5px, -2px);
+          opacity: 0.5;
+        }
+        35% {
+          transform: none;
+          opacity: 0.25;
+        }
+        52% {
+          transform: none;
+          opacity: 0.25;
+        }
+        55% {
+          transform: translate(-5px, -1px);
+          opacity: 0.5;
+        }
+        50% {
+          transform: none;
+          opacity: 0.25;
+        }
+        72% {
+          transform: none;
+          opacity: 0.25;
+        }
+        75% {
+          transform: translate(-2px, -6px);
+          opacity: 0.5;
+        }
+        80% {
+          transform: none;
+          opacity: 0.25;
+        }
+        100% {
+          transform: none;
+          opacity: 0.25;
+        }
+      }
+      
+      @keyframes glitch3 {
+        0% {
+          transform: none;
+          opacity: 0.25;
+        }
+        7% {
+          transform: translate(2px, 3px);
+          opacity: 0.5;
+        }
+        10% {
+          transform: none;
+          opacity: 0.25;
+        }
+        27% {
+          transform: none;
+          opacity: 0.25;
+        }
+        30% {
+          transform: translate(5px, 2px);
+          opacity: 0.5;
+        }
+        35% {
+          transform: none;
+          opacity: 0.25;
+        }
+        52% {
+          transform: none;
+          opacity: 0.25;
+        }
+        55% {
+          transform: translate(5px, 1px);
+          opacity: 0.5;
+        }
+        50% {
+          transform: none;
+          opacity: 0.25;
+        }
+        72% {
+          transform: none;
+          opacity: 0.25;
+        }
+        75% {
+          transform: translate(2px, 6px);
+          opacity: 0.5;
+        }
+        80% {
+          transform: none;
+          opacity: 0.25;
+        }
+        100% {
+          transform: none;
+          opacity: 0.25;
+        }
+      }
+  </style>
+</head>
+<body>
+
+  <div id="imageContainer">
+    <img src="../assets/SiinaAc.png" alt="髪留め">
+    <div class="circle top"></div>
+    <div class="circle bottom"></div>
+    <div id="clockContainer">
+      <div id="timeDate">
+        <div id="time">00:00</div>
+        <div id="dateContainer">
+          <div id="date">00/00</div>
+          <div id="weekday">Weekday</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+    const ghostImage = document.getElementById('imageContainer');
+    const timeDiv = document.getElementById('time');
+    const dateDiv = document.getElementById('dateContainer');
+    let oldmm = "";
+    function updateClock() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2,'0');
+      const mm = String(now.getMinutes()).padStart(2,'0');
+      document.getElementById('time').textContent = `${hh}:${mm}`;
+
+      const mo = String(now.getMonth()+1).padStart(2,'0');
+      const dd = String(now.getDate()).padStart(2,'0');
+      document.getElementById('date').textContent = `${mo}/${dd}`;
+
+      const weekdays = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      document.getElementById('weekday').textContent = weekdays[now.getDay()];
+
+      //前回と違う分が違うかチェック
+      if(oldmm == null || oldmm != mm)
+      {
+        oldmm = mm;
+        playAnimation();
+      }
+    }
+
+    //全体のアニメーション再生
+    function playAnimation()
+    {
+        playAnimationDiv(ghostImage,"glitch1","1.2s");
+        playAnimationDiv(timeDiv,"glitch2","1.25s");
+        playAnimationDiv(dateDiv,"glitch3","1.15s");
+    }
+
+    //詳細divのアニメーション再生
+    function playAnimationDiv(element_div, animation_name, animation_time) {
+        // パラメータチェック
+        if (!element_div || !animation_name || !animation_time) return;
+    
+        // 現在のアニメーション状態を取得
+        const computedStyle = window.getComputedStyle(element_div);
+        const currentAnimations = computedStyle.animationName
+            ? computedStyle.animationName.split(',').map(name => name.trim())
+            : [];
+    
+        // 既存のアニメーションをリセット
+        if (currentAnimations.includes(animation_name)) {
+            element_div.style.animation = 'none';
+            // リフローを強制（アニメーション再開のため）
+            void element_div.offsetHeight;
+        }
+    
+        // 新しいアニメーションを適用
+        element_div.style.animation = `${animation_name} ${animation_time}`;
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+  </script>
+
+</body>
+</html>
